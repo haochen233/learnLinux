@@ -1,0 +1,159 @@
+5.1 shell的类型
+	系统启动什么样的shell程序取决于你个人的用户ID配置，在/etc/passwd中。
+	用户只要登录终端，默认的shell就会启动。
+	Centos使用的其他一些shell程序，其中包括tcsh
+	
+5.2 shell的父子关系
+	输入其他的bash命令，会创建新的shell程序，这个新的shell进程就是子shell，
+当然子shell也可以创建新shell程序。
+
+	5.2.1 进程列表
+		要在一行指定依次运行的命令可以使用命令列表实现
+		例如：
+		$ pwd; ls; cd/etc; pwd; ls; pwd
+		即用分号隔开
+		
+		但是这仅仅是命令列表，并不是进程列表。要成为进程列表，这些命令必须
+	包含在括号中。
+		例如：
+		$(pwd; ls; cd/etc; pwd; ls; pwd)		
+		这就是一个进程列表
+		
+		虽然看起来没什么不同，但是起到的效果确是非同寻常的。括号的加入是命令
+	列表变成了进程列表，生成了一个子shell来执行对应的命令。
+		进程列表是一种命令分组，另一种命令分组为：
+		${pwd; ls; cd/etc; pwd; ls; pwd;}
+		将命令加入中括号，并且尾部加上';'。这样并不会像进程列表那样创建子sh
+	ell。
+		
+		要想知道是否生成子shell，就得使用一个环境变量，$BASH_SUBSHELL，该命令
+	返回0，表明没有子shell，如果返回大于等于1表明有子shell。
+	
+	5.2.2 别出心裁的子shell用法
+		1、探索后台模式
+			在后台模式中运行的命令可以在处理命令的同时出让CIL
+			例如：
+			$sleep 3000&
+			#表示sleep进程会在后台运行，（&）是后台运行的意思。
+			除了ps命令，还可以使用jobs命令来显示后台作业信息。jobs
+		可以显示当前运行在后台的所有用户的进程（作业）。
+			$jobs
+			利用jobs的-l选型还可以看到更详细的信息。
+			
+		2、将进程列表置入后台
+			例如：$(sleep 2; echo $BASH_SUBSHELL; sleep 2)
+			#显示的数字1，表示只有一个子shell
+			
+			在CIL中运用子shell的创造性方法之一就是将进程列表置入后台，
+		你既可以在子shell中进行繁重的处理工作，同时也不会让子shell的
+		IO受制于终端。
+			比如：
+			$(sleep 2; echo $BASH_SUBSHELL; sleep 2)&
+			
+		3. 协程
+			协程可以同时做两件事情。它在后台生成一个子shell，在这个字shell
+		中执行命令。
+			要进行协程处理，使用coproc，还有在子shell中执行的命令。
+			例如：
+			$coproc sleep 10
+			
+			还可以使用命令的扩展语法来给进程起名字
+			$coproc Name {command}
+			例如：
+			$coproc my_task1 { sleep 10; }
+		必须保证左右中括号必须与命令之间有一个空格，而且命令要以';'结尾。
+		
+			把协程和进程列表结合起来使用，生成嵌套的子shell。这样是火上浇油
+		的做法，因为创建子shell的成本不低，而且速度还慢。
+			例如：
+			$coproc (sleep 5; sleep 2)
+		
+			可以使用$ps --forest 来查看树状结构
+			可以使用exit退出shell
+			
+	5.3 理解shell的内建命令
+		
+		5.3.1 外部命令
+			外部命令有时也被称为文件系统命令，是存在与bash shell之外的程序
+		外部命令通常位于/bin、/usr/bin、/sbin、/usr/sbin下
+			ps就是一个外部命令。
+			可以使用which和type命令找到它。
+			$which ps
+			#/bin/ps
+			
+			$type ps
+			#ps is /bin/ps
+			
+			当外部命令执行时，会创建一个子进程。这种操作叫衍生（forking）
+		，外部命令ps很方便的显示出他的父进程和自己所对应的衍生子进程。
+		
+		5.3.2 内建命令
+			内建命令和外部命令的区别在于内建命令不需要创建子进程执行。
+		它们已经和shell编译成了一体。
+		
+			cd 和 exit 命令都属于内建命令。
+			可以使用type命令来了解某个命令是否是内建的。
+			例如：
+			$ type cd
+			#cd is a shell builtin
+			
+			$ type -a echo
+			#echo is a shell builtin
+			#echo is /bin/echo
+			
+			要注意，有些命令有很多中实现，例如echo和pwd既有内建命令，也有
+		外部命令。
+			两种实现略有不同，要查看不同实现，使用type的-a 选项。
+			
+			窍门：
+				对于有多种实现的命令，如果要使用其外部命令，直接指明对应的
+			文件就可以了，例如：使用外部pwd，可以输入/bin/pwd
+			
+			
+			1、使用history命令
+				查看最近使用过的命令，最多保存1000条命令，挺多了。（可以设置大小）
+			你需要修改名为HISTSIZE环境变量）。
+				可以使用$!! 来换回并重用历史列表中最近的命令。
+				（会先显示该命令，然后在执行。）
+				
+			bssh命令的历史记录是先放在内存中，等shell退出后，才被写入到历史文件
+		.bash_history中。
+			
+			可以使用history的-a选项在退出shell之前强制将历史命令记录写入到.bash_
+		history文件中。
+		
+			你可以唤回历史命令记录里面的任意一条命令，
+			如下格式：
+			$!nu	#nu为命令在记录中的行号。
+			
+			2、命令别名
+				alias命令是另一个shell的内建命令，（类似于c语言的typedef和GO语言）
+			中的type：为该类型起一个别名）。
+				从而减少你的命令输入量。
+				Linux发行版可以能已经为你设置好了一些常用命令的别名。
+				例如ubuntu 18.04 LTS中
+				$ alias -p
+				alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+				alias egrep='egrep --color=auto'
+				alias fgrep='fgrep --color=auto'
+				alias grep='grep --color=auto'
+				alias l='ls -CF'
+				alias la='ls -A'
+				alias ll='ls -alF'
+				alias ls='ls --color=auto'
+
+				我们就看到了ls -CF 命令的别名就是l。之前还以为l和ls -F不是一个命令，
+			其实是一个命令，只不过起了个简单的名字。
+			
+				用法:$alias name='command'
+				
+				这个别名只在它所定义的shell进程中有效。
+				不过有办法在其他shell中可以执行,没错，就是环境变量。
+		
+				
+			
+				
+				
+
+			
+	

@@ -1,0 +1,16 @@
+一个Terminal默认就是一个shell命令窗口
+
+ctrl+alt+T		（没有一个Terminal的情况下）启动一个新的Terminal窗口
+ctrl+shift+N	（必须已经有Terminal启动的情况下）启动一个新的Terminal窗口
+ctrl+shift+T	在当前Terminal中启动一个新的shell命令窗口（tab）
+
+#注意快捷键顺序！！！
+shift+ctrl+C	在shell中复制选中的内容
+shift+ctrl+v	在shell中粘贴
+
+#tty2代表虚拟控制台2
+
+
+
+
+
