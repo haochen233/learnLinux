@@ -127,6 +127,119 @@
 		比如我go的PATH路径没有设置好，直接使用go run 命令时没有用的，
 	因为找不到，所以只能使用绝对路径/home/haochen/go/bin/go run hello.go
 	来使用命令了。一定要配置好。
+		
+		可以把新的搜索目录添加到现有的PATH环境变量中，注意PATH环境变量
+	中各个目录之间是用冒号':'分隔的。你只需引用原来的PATH值，然后在加上
+	新的搜索目录就可以了。
+		例如：
+		我安装了go，然后需要配置go的搜索目录，可以如下这么配置：
+		PATH=$PATH:/home/haochen/go/bin ,这样就往PATH环境变量中添加了新的
+	搜索目录。
+		添加后就可以在虚拟目录结构中的任何位置执行程序。
+		
+		如果希望子shell也能找到你的程序的位置，一定要把修改后的PATH环境
+	变量导出。
+		
+		程序员通常的办法是将单点符也加入PATH环境变量，单点符代表当前目录
+		$PATH=$PATH:.
+		
+		对PATH变量的修改只能持续到退出或重启系统。这种效果并不能持续。
+	后面会学到如何永久的保持环境变量的修改成果。
+		
+	6.6 定位系统环境变量
+	接下来的问题时怎么让环境变量的作用持久化。
+	在你登入Linux系统	启动一个bash shell时，默认情况下bash会在
+几个文件中查找命令。这些文件叫作启动文件或环境文件。
+	bash检查的启动文件取决于启动bash shell的方式
+	启动bash shell有三种方式：
+	1）登录时作为默认登录shell
+	2）作为非登录shell的交互式shell
+	3）作为运行脚本的非交互式shell
 	
-	
+		6.6.1 登录shell
+			当你登录Linux系统，bash shell会作为登录shell启动，登录shell
+		会从五个不同的启动文件里读取命令。
+			1）/etc/profile
+			2）$HOME/.bash_profile
+			3）$HOME/.bashrc
+			4）$HOME/.bash_login
+			5）$HOME/.profile 
+		
+		/etc/profile文件是系统上默认的bash shell主启动文件。每个用户
+	登录时都会执行这个启动文件。
+			另外4个启动文件是针对用户的，可根据个人需求定制。
+		
+			1、/etc/profile
+				是bash shell默认的主启动文件，只要你的登录了Linux系统
+			bash就会自动执行/etc/profile启动文件中的命令。
+			
+				/etc/profile使用到了一个特性：for 语句。它用来迭代
+			/etc/profile.d目录下的所有文件。
+				供bash shell使用的文件（扩展名为.sh）,供c shell使用的文
+			件（扩展名.csh）
+			
+			2、$HOME目录下启动的文件
+				1）$HOME/.bash_profile
+				2）$HOME/.bashrc
+				3）$HOME/.bash_login
+				4）$HOME/.profile 
+				
+				大多数Linux发行版只用这四个启动文件中的一个到两个
+				
+				.bash_profile启动文件会先去检查HOME目录中是不是还有
+			一个叫做.bashrc的启动文件。如果有的话。会先执行启动文件
+			里面的命令。
+			
+		6.6.2 交互式shell进程
+			如果bash shell不是登录时启动的（比如在命令行提示符下敲
+		bash命令启动）那么你启动的shell叫做交互式shell。
+			如果bash是交互式shell启动的，它就不会访问/etc/profile文
+		件，只会检查用户目录下的.bashrc文件。
+			该文件作用有两个：（1）查看/etc目录下通用的bashrc文件。
+		（2）为用户提供一个定制自己命令别名和私有脚本函数的地方。
+		
+		6.6.3 非交互式shell
+			略。
+		6.6.4 环境变量持久化
+			对全局变量来说，你可能更倾向于新的或修改过的变量设置放在
+		/etc/profile文件中。但这可不是什么好主意。如果你升级了发行版
+		，那么这个文件也会跟着更新，那你定制过的所有变量设置可就都没
+		有了。
+		
+			最好是在/etc/profile.d目录中创建一个以.sh结尾的文件。把所
+		有新的或修改过的全局变量设置放在这个文件中。
+		
+			在大多数发行版中，存储个人用户永久性bash shell变量的地方
+		是$HOME/.bashrc 文件。这一点适用于所有的shell进程。
+		
+			比如alias命令设置就不是持久化的，于是可以将自己的alias命令
+		设置放在$HOME/.bashrc文件中，使其效果永久化。
+		
+	6.7 数组变量
+		要给某个环境变量设置多个值，可以把值放在括号里，之间用空格隔开
+		$mytest=(one two three four five)
+		
+		$echo $mytest
+		#one 只会显示第一个值。
+		要引用一个单独的数组元素，就必须用代表它在数组中位置的数值索引值
+	索引要方括号括起来。
+		$echo ${mytest[2]}
+		#three
+		
+		要显示整个数组，可用星号'*'作用通配符放在方括号中
+		$echo ${mytest[*]}
+		#one two three four five
+		
+		与C语言比较相似
+		元素赋值
+		$mytest[2]=3
+		
+		还可以使用unset删除元素
+		$unset mytest[2]
+		#删除第三个元素
+		
+		$unset mytesst
+		#删除整个数组
+		
+		
 
