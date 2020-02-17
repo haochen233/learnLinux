@@ -85,6 +85,19 @@
 		
 		cp -R的威力强大，递归地复制整个目录的内容
 		
+		scp命令可以远程复制文件。  
+		从本地复制到远程
+		# 拷贝文件
+		scp /home/test/test.txt root@192.168.0.2:/home/test/
+		# 拷贝目录
+		scp -r /home/test/ root@192.168.0.2:/home/test/
+		
+		# 拷贝文件
+		scp root@192.168.0.2:/home/test/ /home/test/test.txt
+		# 拷贝目录
+		scp -r root@192.168.0.2:/home/test/ v/home/test/
+		
+		
 	3.6.4 链接文件		
 		软链接：
 			类似Windows中的快捷方式。引用数不变。
